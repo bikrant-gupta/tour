@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;URL='/'">
+  <title>Tour Explorer</title>
+  <script>
+    // GitHub Pages SPA redirect
+    // Converts the path to a hash-based route so index.html can handle it
+    (function () {
+      var path = window.location.pathname;
+      var hash = window.location.hash;
+      
+      // If we have a path like /location/xyz/, convert to hash routing
+      if (path && path !== '/' && path !== '/index.html') {
+        var redirectUrl = window.location.origin + '/#' + path;
+        window.location.replace(redirectUrl);
+      } else {
+        // Fallback: go to root
+        window.location.replace(window.location.origin + '/');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>

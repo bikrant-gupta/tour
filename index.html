@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tour Explorer — A beautifully curated visual journal of travel destinations, mapped and organized by location and event.">
+  <meta name="theme-color" content="#0a0e17">
+
+  <title>Tour Explorer</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin="">
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+</head>
+<body>
+
+  <!-- ======== Auth Overlay (rendered by auth.js) ======== -->
+  <div id="auth-overlay" class="auth-overlay auth-overlay--visible"></div>
+
+  <div id="app">
+
+    <!-- ======== Navbar ======== -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+      <a class="navbar__brand" id="navbar-brand" href="#">
+        <div class="navbar__icon">📍</div>
+        <div>
+          <div class="navbar__title">Tour Explorer</div>
+          <div class="navbar__subtitle">Travel Journal</div>
+        </div>
+      </a>
+
+      <!-- ======== Search Bar ======== -->
+      <div class="navbar__search" id="navbar-search">
+        <div class="search-bar">
+          <span class="search-bar__icon">🔍</span>
+          <input
+            class="search-bar__input"
+            id="search-input"
+            type="search"
+            placeholder="Search locations, places, tags…"
+            aria-label="Search"
+            autocomplete="off"
+          >
+          <kbd class="search-bar__kbd">ESC</kbd>
+        </div>
+      </div>
+
+      <div class="navbar__right">
+        <div class="navbar__stats">
+          <span id="location-count" class="navbar__stats-count">0</span>
+          <span>destinations</span>
+        </div>
+
+        <!-- Timeline toggle -->
+        <button class="navbar__timeline-btn" id="timeline-toggle" title="Timeline view" aria-label="Toggle timeline view">
+          <span class="navbar__timeline-icon">⏱</span>
+          <span class="navbar__timeline-label">Timeline</span>
+        </button>
+
+        <div class="navbar__author">
+          <div class="navbar__author-avatar" id="author-initial">E</div>
+          <span class="navbar__author-name" id="author-name">Explorer</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ======== Map ======== -->
+    <div id="map"></div>
+
+    <!-- ======== Overlay ======== -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ======== Location Slide Panel ======== -->
+    <aside class="location-panel" id="location-panel" role="dialog" aria-label="Location details">
+      <button class="panel__close" id="panel-close" aria-label="Close panel">✕</button>
+      <div class="panel__header">
+        <div class="panel__location-icon">📍</div>
+        <h2 class="panel__location-name" id="panel-location-name">—</h2>
+        <div class="panel__coords" id="panel-coords">—</div>
+        <!-- Location tags -->
+        <div class="panel__location-tags" id="panel-tags" style="display:none"></div>
+      </div>
+      <div class="panel__tabs" id="panel-tabs" role="tablist" aria-label="Tour events"></div>
+      <div class="panel__content" id="panel-content" role="tabpanel">
+        <div class="empty-state">
+          <div class="empty-state__icon">🗺️</div>
+          <div class="empty-state__text">Select a location to explore</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ======== Lightbox ======== -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-label="Image viewer">
+      <button class="lightbox__close" id="lightbox-close" aria-label="Close lightbox">✕</button>
+      <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" aria-label="Previous image">‹</button>
+      <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" aria-label="Next image">›</button>
+      <div class="lightbox__image-wrapper" id="lightbox-image-wrapper"></div>
+      <div class="lightbox__caption" id="lightbox-caption"></div>
+      <div class="lightbox__tags" id="lightbox-tags" style="display:none"></div>
+      <div class="lightbox__counter" id="lightbox-counter"></div>
+    </div>
+
+    <!-- ======== Timeline View ======== -->
+    <div class="timeline-view" id="timeline-view" style="display:none"></div>
+
+    <!-- ======== Theme Toggle (bottom-left) ======== -->
+    <button class="theme-toggle" id="theme-toggle" title="Switch to light mode" aria-label="Toggle theme">
+      <span class="theme-toggle__icon">☀️</span>
+      <span class="theme-toggle__label">Light</span>
+    </button>
+
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+
+  <!-- HEIC Support -->
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+
+  <!-- App Scripts (order matters: tracker → app → auth) -->
+  <script src="tracker.js"></script>
+  <script src="app.js"></script>
+  <script src="auth.js"></script>
+
+</body>
+</html>
