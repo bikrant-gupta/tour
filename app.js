@@ -7,18 +7,18 @@
   'use strict';
 
   // ---------- State ----------
-  let appData      = null;
-  let map          = null;
-  let markers      = {};
-  let _tileLayers  = [];
-  let activeLocationId  = null;
-  let activeEventIndex  = 0;
-  let lightboxImages    = [];
-  let lightboxIndex     = 0;
-  let currentTheme      = 'dark';
-  let activeView        = 'map'; // 'map' | 'timeline'
-  let _searchDebounce   = null;
-  let _searchIndex      = [];
+  let appData = null;
+  let map = null;
+  let markers = {};
+  let _tileLayers = [];
+  let activeLocationId = null;
+  let activeEventIndex = 0;
+  let lightboxImages = [];
+  let lightboxIndex = 0;
+  let currentTheme = 'dark';
+  let activeView = 'map'; // 'map' | 'timeline'
+  let _searchDebounce = null;
+  let _searchIndex = [];
 
   // ---------- DOM References ----------
   const elements = {};
@@ -289,7 +289,7 @@
         });
       });
     });
-    return events.sort((a, b) => new Date(a.event_start) - new Date(b.event_start));
+    return events.sort((a, b) => new Date(b.event_start) - new Date(a.event_start));
   }
 
   function getDurationDays(start, end) {
@@ -404,25 +404,25 @@
 
   // ---------- Element Caching ----------
   function cacheElements() {
-    elements.app                 = document.getElementById('app');
-    elements.map                 = document.getElementById('map');
-    elements.overlay             = document.getElementById('overlay');
-    elements.panel               = document.getElementById('location-panel');
-    elements.lightbox            = document.getElementById('lightbox');
-    elements.timelineView        = document.getElementById('timeline-view');
-    elements.authorName          = document.getElementById('author-name');
-    elements.authorInitial       = document.getElementById('author-initial');
-    elements.locationCount       = document.getElementById('location-count');
-    elements.panelLocationName   = document.getElementById('panel-location-name');
-    elements.panelCoords         = document.getElementById('panel-coords');
-    elements.panelTags           = document.getElementById('panel-tags');
-    elements.panelTabs           = document.getElementById('panel-tabs');
-    elements.panelContent        = document.getElementById('panel-content');
+    elements.app = document.getElementById('app');
+    elements.map = document.getElementById('map');
+    elements.overlay = document.getElementById('overlay');
+    elements.panel = document.getElementById('location-panel');
+    elements.lightbox = document.getElementById('lightbox');
+    elements.timelineView = document.getElementById('timeline-view');
+    elements.authorName = document.getElementById('author-name');
+    elements.authorInitial = document.getElementById('author-initial');
+    elements.locationCount = document.getElementById('location-count');
+    elements.panelLocationName = document.getElementById('panel-location-name');
+    elements.panelCoords = document.getElementById('panel-coords');
+    elements.panelTags = document.getElementById('panel-tags');
+    elements.panelTabs = document.getElementById('panel-tabs');
+    elements.panelContent = document.getElementById('panel-content');
     elements.lightboxImageWrapper = document.getElementById('lightbox-image-wrapper');
-    elements.lightboxCaption     = document.getElementById('lightbox-caption');
-    elements.lightboxCounter     = document.getElementById('lightbox-counter');
-    elements.lightboxTags        = document.getElementById('lightbox-tags');
-    elements.searchInput         = document.getElementById('search-input');
+    elements.lightboxCaption = document.getElementById('lightbox-caption');
+    elements.lightboxCounter = document.getElementById('lightbox-counter');
+    elements.lightboxTags = document.getElementById('lightbox-tags');
+    elements.searchInput = document.getElementById('search-input');
   }
 
   // ---------- Navbar ----------
@@ -578,8 +578,8 @@
       <div class="group-card" id="group-${group.group_id}" style="animation-delay: ${groupIndex * 100}ms">
         <div class="group-card__hero">
           ${heroSrc
-            ? `<img data-src="${heroSrc}" alt="${group.group_name}" src="${BLANK_SRC}">`
-            : '<div class="group-card__hero-placeholder">🏔️</div>'}
+        ? `<img data-src="${heroSrc}" alt="${group.group_name}" src="${BLANK_SRC}">`
+        : '<div class="group-card__hero-placeholder">🏔️</div>'}
           <div class="group-card__hero-overlay">
             <div class="group-card__hero-title">${group.group_name}</div>
           </div>
