@@ -5,12 +5,25 @@ style.css
 auth.js
 tracker.js
 data.json
-# Original images (*.enc versions are pushed)
+
+# Original images — all case variants (*.enc versions are pushed)
 images/**/*.jpg
 images/**/*.jpeg
+images/**/*.JPG
+images/**/*.JPEG
 images/**/*.png
+images/**/*.PNG
 images/**/*.webp
+images/**/*.WEBP
 images/**/*.gif
+images/**/*.GIF
+images/**/*.heic
+images/**/*.HEIC
+
 # Keep encrypted files
 !images/**/*.enc
 !vault.json
+
+# macOS clutter
+.DS_Store
+**/.DS_Store
