@@ -1,0 +1,16 @@
+
+# ── Plaintext source files (encrypted versions are pushed) ──
+app.js
+style.css
+auth.js
+tracker.js
+data.json
+# Original images (*.enc versions are pushed)
+images/**/*.jpg
+images/**/*.jpeg
+images/**/*.png
+images/**/*.webp
+images/**/*.gif
+# Keep encrypted files
+!images/**/*.enc
+!vault.json

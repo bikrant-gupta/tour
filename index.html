@@ -3,33 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Tour Explorer — A beautifully curated visual journal of travel destinations, mapped and organized by location and event.">
+  <meta name="description" content="Tour Explorer — Private travel journal">
   <meta name="theme-color" content="#0a0e17">
-
   <title>Tour Explorer</title>
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin="">
-
-  <!-- App Styles -->
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Favicon -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+  <style>
+    /* ── Lock Screen ── */
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--accent:#f59e0b;--accent-glow:rgba(245,158,11,.25);--bg:#0a0e17;--bg2:#111827;--glass:rgba(15,23,42,.8);--border:rgba(148,163,184,.1);--text:#f1f5f9;--muted:#64748b;--radius:.75rem;--ease:cubic-bezier(.16,1,.3,1)}
+    html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    #lock-screen{
+      position:fixed;inset:0;z-index:99999;
+      display:flex;align-items:center;justify-content:center;
+      background:radial-gradient(ellipse at 30% 20%,rgba(245,158,11,.06) 0%,transparent 60%),
+                 radial-gradient(ellipse at 70% 80%,rgba(99,102,241,.06) 0%,transparent 60%),
+                 var(--bg);
+    }
+    .lock__card{
+      width:100%;max-width:400px;margin:1rem;
+      background:var(--glass);
+      backdrop-filter:blur(24px) saturate(180%);
+      -webkit-backdrop-filter:blur(24px) saturate(180%);
+      border:1px solid var(--border);
+      border-radius:1.5rem;
+      padding:2.5rem 2rem;
+      box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(245,158,11,.06);
+      position:relative;overflow:hidden;
+    }
+    .lock__glow{
+      position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+      width:200px;height:200px;border-radius:50%;
+      background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    .lock__icon{
+      width:64px;height:64px;margin:0 auto 1.25rem;border-radius:1rem;
+      background:linear-gradient(135deg,var(--accent),#f97316);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.75rem;box-shadow:0 8px 24px var(--accent-glow);
+    }
+    .lock__title{
+      font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;
+      text-align:center;letter-spacing:-.03em;margin-bottom:.25rem;
+    }
+    .lock__subtitle{
+      text-align:center;color:var(--muted);font-size:.82rem;
+      margin-bottom:2rem;letter-spacing:.02em;
+    }
+    .lock__state{
+      text-align:center;font-size:.82rem;color:var(--muted);
+      min-height:1.2em;margin-bottom:.75rem;
+      transition:color .2s ease;
+    }
+    .lock__state--error{color:#f87171}
+    .lock__state--progress{color:var(--accent)}
+    .lock__input-wrap{
+      position:relative;margin-bottom:1rem;
+    }
+    .lock__input{
+      width:100%;padding:.75rem 3rem .75rem 1rem;
+      background:rgba(148,163,184,.06);
+      border:1px solid var(--border);border-radius:var(--radius);
+      color:var(--text);font-family:'Inter',sans-serif;font-size:.95rem;
+      outline:none;transition:border-color .2s,box-shadow .2s;
+    }
+    .lock__input:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px var(--accent-glow);
+    }
+    .lock__toggle{
+      position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+      background:none;border:none;cursor:pointer;color:var(--muted);
+      font-size:1rem;padding:.25rem;
+      transition:color .2s;
+    }
+    .lock__toggle:hover{color:var(--text)}
+    .lock__btn{
+      width:100%;padding:.85rem;
+      background:linear-gradient(135deg,var(--accent),#f97316);
+      border:none;border-radius:var(--radius);
+      color:#000;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;
+      cursor:pointer;letter-spacing:.02em;
+      transition:opacity .2s,transform .15s,box-shadow .2s;
+      box-shadow:0 4px 16px var(--accent-glow);
+    }
+    .lock__btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px var(--accent-glow)}
+    .lock__btn:active{transform:translateY(0)}
+    .lock__btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .lock__dots{
+      display:inline-flex;gap:4px;vertical-align:middle;
+    }
+    .lock__dot{
+      width:6px;height:6px;border-radius:50%;background:currentColor;
+      animation:lockBounce .8s ease-in-out infinite;
+    }
+    .lock__dot:nth-child(2){animation-delay:.15s}
+    .lock__dot:nth-child(3){animation-delay:.3s}
+    @keyframes lockBounce{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1);opacity:1}}
+    .lock__shake{animation:lockShake .5s ease}
+    @keyframes lockShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+    .lock__attempts{font-size:.75rem;color:var(--muted);text-align:center;margin-top:.75rem}
+    .lock__blocked-icon{font-size:3rem;text-align:center;margin-bottom:1rem}
+    .lock__blocked-title{font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;text-align:center;color:#f87171;margin-bottom:.5rem}
+    .lock__blocked-text{text-align:center;color:var(--muted);font-size:.85rem;line-height:1.6}
+    .lock__blocked-countdown{color:var(--accent);font-weight:700;font-size:1rem}
+    /* Hidden app */
+    #app{display:none}
+  </style>
 </head>
 <body>
 
-  <!-- ======== Auth Overlay (rendered by auth.js) ======== -->
-  <div id="auth-overlay" class="auth-overlay auth-overlay--visible"></div>
+<!-- ═══════════════ LOCK SCREEN ═══════════════ -->
+<div id="lock-screen">
+  <div class="lock__card" id="lock-card">
+    <div class="lock__glow"></div>
+    <div class="lock__icon">📍</div>
+    <h1 class="lock__title">Tour Explorer</h1>
+    <p class="lock__subtitle">Private travel journal</p>
 
-  <div id="app">
+    <div class="lock__state" id="lock-state"></div>
+
+    <div id="lock-form-area">
+      <div class="lock__input-wrap">
+        <input class="lock__input" type="password" id="lock-pass"
+               placeholder="Enter passkey" autocomplete="current-password" autofocus>
+        <button class="lock__toggle" id="lock-show" type="button" aria-label="Show/hide passkey">👁</button>
+      </div>
+      <button class="lock__btn" id="lock-btn" type="button">Unlock</button>
+      <div class="lock__attempts" id="lock-attempts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP (hidden until decrypted) ═══════════════ -->
+<div id="app">
 
     <!-- ======== Navbar ======== -->
     <nav class="navbar" role="navigation" aria-label="Main navigation">
@@ -123,18 +234,255 @@
 
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
+<!-- CDN libs (not sensitive) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
-  <!-- HEIC Support -->
-  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<!-- ═══════════════ DECRYPTION ENGINE ═══════════════ -->
+<script>
+(function() {
+  'use strict';
 
-  <!-- App Scripts (order matters: tracker → app → auth) -->
-  <script src="tracker.js"></script>
-  <script src="app.js"></script>
-  <script src="auth.js"></script>
+  /* ---- Constants ---- */
+  const SALT_LEN = 16, IV_LEN = 12, TAG_LEN = 16;
+  const MAX_FAILS = 5, BLOCK_MS = 6 * 3600 * 1000;
+  const BLOCK_KEY = '_te_blk', FAIL_KEY = '_te_f';
 
+  /* ---- Lockout helpers ---- */
+  function getBlock() {
+    try { return JSON.parse(localStorage.getItem(BLOCK_KEY) || 'null'); } catch { return null; }
+  }
+  function setBlock(obj) {
+    try { localStorage.setItem(BLOCK_KEY, JSON.stringify(obj)); } catch {}
+  }
+  function getFails() {
+    try { return parseInt(localStorage.getItem(FAIL_KEY) || '0', 10); } catch { return 0; }
+  }
+  function setFails(n) {
+    try { localStorage.setItem(FAIL_KEY, String(n)); } catch {}
+  }
+  function clearBlock() {
+    try { localStorage.removeItem(BLOCK_KEY); localStorage.removeItem(FAIL_KEY); } catch {}
+  }
+  function attemptsLeft() { return Math.max(0, MAX_FAILS - getFails()); }
+
+  /* ---- UI helpers ---- */
+  const passEl     = document.getElementById('lock-pass');
+  const btnEl      = document.getElementById('lock-btn');
+  const stateEl    = document.getElementById('lock-state');
+  const attemptsEl = document.getElementById('lock-attempts');
+  const formArea   = document.getElementById('lock-form-area');
+  const cardEl     = document.getElementById('lock-card');
+
+  function setState(msg, cls) {
+    stateEl.textContent = msg;
+    stateEl.className = 'lock__state' + (cls ? ' lock__state--' + cls : '');
+  }
+  function setLoading(loading, label) {
+    btnEl.disabled = loading;
+    btnEl.innerHTML = loading
+      ? '<span class="lock__dots"><span class="lock__dot"></span><span class="lock__dot"></span><span class="lock__dot"></span></span>'
+      : (label || 'Unlock');
+  }
+  function shake() {
+    cardEl.classList.remove('lock__shake');
+    void cardEl.offsetWidth; // reflow
+    cardEl.classList.add('lock__shake');
+  }
+  function updateAttempts() {
+    const left = attemptsLeft();
+    attemptsEl.textContent = left < MAX_FAILS
+      ? left + ' attempt' + (left !== 1 ? 's' : '') + ' remaining'
+      : '';
+  }
+
+  /* ---- Blocked UI ---- */
+  let _cdTimer;
+  function showBlocked(until) {
+    clearInterval(_cdTimer);
+    formArea.innerHTML = `
+      <div class="lock__blocked-icon">🔒</div>
+      <p class="lock__blocked-title">Access Temporarily Blocked</p>
+      <p class="lock__blocked-text">
+        Too many incorrect attempts.<br>
+        Try again in <span class="lock__blocked-countdown" id="blk-cd"></span>.
+      </p>`;
+    const cdEl = document.getElementById('blk-cd');
+    function tick() {
+      const rem = Math.max(0, until - Date.now());
+      const h = Math.floor(rem / 3600000);
+      const m = Math.floor((rem % 3600000) / 60000);
+      const s = Math.floor((rem % 60000) / 1000);
+      cdEl.textContent = h + 'h ' + m + 'm ' + s + 's';
+      if (rem <= 0) { clearInterval(_cdTimer); clearBlock(); location.reload(); }
+    }
+    tick();
+    _cdTimer = setInterval(tick, 1000);
+  }
+
+  /* ---- Key derivation (PBKDF2-SHA256) ---- */
+  async function deriveKey(passkey, saltBuf) {
+    const enc = new TextEncoder().encode(passkey);
+    const raw = await crypto.subtle.importKey('raw', enc, 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: saltBuf, iterations: 250000, hash: 'SHA-256' },
+      raw,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+  }
+
+  /* ---- AES-GCM decrypt ---- */
+  async function decryptBuf(key, encBuf) {
+    const iv   = encBuf.slice(0, IV_LEN);
+    const data = encBuf.slice(IV_LEN);   // ciphertext + 16-byte tag
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+    return new Uint8Array(plain);
+  }
+
+  /* ---- Execute JS safely via Blob URL ---- */
+  function loadScript(code) {
+    return new Promise((resolve, reject) => {
+      const blob = new Blob([code], { type: 'application/javascript' });
+      const url  = URL.createObjectURL(blob);
+      const el   = document.createElement('script');
+      el.src = url;
+      el.onload  = () => { URL.revokeObjectURL(url); resolve(); };
+      el.onerror = reject;
+      document.head.appendChild(el);
+    });
+  }
+
+  /* ---- Hex helpers ---- */
+  function hexToBuf(hex) {
+    const buf = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < buf.length; i++)
+      buf[i] = parseInt(hex.slice(i*2, i*2+2), 16);
+    return buf.buffer;
+  }
+
+  /* ---- Main decrypt & boot ---- */
+  async function tryUnlock(passkey) {
+    setLoading(true);
+    setState('Deriving key…', 'progress');
+
+    let vault;
+    try {
+      const resp = await fetch('vault.json?_=' + Date.now());
+      vault = await resp.json();
+    } catch {
+      setState('Failed to load vault. Reload and retry.', 'error');
+      setLoading(false);
+      return;
+    }
+
+    const saltBuf = hexToBuf(vault.salt);
+    let key;
+    try {
+      key = await deriveKey(passkey, saltBuf);
+    } catch {
+      setState('Key derivation failed.', 'error');
+      setLoading(false);
+      return;
+    }
+
+    /* Test decryption with data.json first */
+    let dataJson;
+    setState('Verifying passkey…', 'progress');
+    try {
+      const encBuf = hexToBuf(vault.files['data.json']);
+      const plain  = await decryptBuf(key, encBuf);
+      dataJson = JSON.parse(new TextDecoder().decode(plain));
+    } catch {
+      /* Wrong key — AES-GCM auth tag failed */
+      const fails = getFails() + 1;
+      setFails(fails);
+      if (fails >= MAX_FAILS) {
+        const until = Date.now() + BLOCK_MS;
+        setBlock({ until });
+        showBlocked(until);
+      } else {
+        shake();
+        passEl.value = '';
+        setState('Incorrect passkey.', 'error');
+        updateAttempts();
+        setLoading(false, 'Unlock');
+        passEl.focus();
+      }
+      return;
+    }
+
+    /* ✅ Correct key — decrypt and boot */
+    setState('Decrypting…', 'progress');
+    clearBlock();
+
+    // Expose data and session key globally
+    window.__tourData   = Object.freeze(dataJson);
+    window.__sessionKey = key;            // for image decryption in app.js
+
+    // Decrypt and inject CSS
+    try {
+      const cssBuf = hexToBuf(vault.files['style.css']);
+      const cssPlain = await decryptBuf(key, cssBuf);
+      const style  = document.createElement('style');
+      style.textContent = new TextDecoder().decode(cssPlain);
+      document.head.appendChild(style);
+    } catch(e) { console.warn('[Loader] CSS decrypt failed', e); }
+
+    setState('Loading app…', 'progress');
+
+    // Show app container
+    document.getElementById('app').style.display = '';
+
+    // Execute scripts in order: tracker → app → auth
+    const order = ['tracker.js', 'app.js', 'auth.js'];
+    for (const fname of order) {
+      if (!vault.files[fname]) continue;
+      try {
+        const buf   = hexToBuf(vault.files[fname]);
+        const plain = await decryptBuf(key, buf);
+        await loadScript(new TextDecoder().decode(plain));
+      } catch(e) { console.error('[Loader] Script failed:', fname, e); }
+    }
+
+    // Hide lock screen
+    setState('', '');
+    document.getElementById('lock-screen').style.display = 'none';
+  }
+
+  /* ---- Init ---- */
+  (function init() {
+    // Check block
+    const blk = getBlock();
+    if (blk && blk.until && Date.now() < blk.until) {
+      showBlocked(blk.until);
+      return;
+    }
+
+    updateAttempts();
+
+    // Unlock button
+    btnEl.addEventListener('click', () => {
+      const pass = passEl.value;
+      if (!pass) { setState('Please enter a passkey.', 'error'); passEl.focus(); return; }
+      tryUnlock(pass);
+    });
+
+    // Enter key
+    passEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') btnEl.click();
+    });
+
+    // Show/hide toggle
+    document.getElementById('lock-show').addEventListener('click', () => {
+      passEl.type = passEl.type === 'password' ? 'text' : 'password';
+    });
+
+    passEl.focus();
+  })();
+})();
+</script>
 </body>
 </html>
