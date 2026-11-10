@@ -503,8 +503,9 @@ function generateLoader() {
     clearBlock();
 
     // Expose data and session key globally
-    window.__tourData   = Object.freeze(dataJson);
-    window.__sessionKey = key;            // for image decryption in app.js
+    window.__tourData        = Object.freeze(dataJson);
+    window.__sessionKey      = key;            // for image decryption in app.js
+    window.__preAuthenticated = true;          // skip auth.js login form — vault key IS the auth
 
     // Decrypt and inject CSS
     try {
