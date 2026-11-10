@@ -1,4 +1,8 @@
 
+# ── Dev-only files (never push) ──
+dev.html
+index.html.bak
+
 # ── Plaintext source files (encrypted versions are pushed) ──
 app.js
 style.css
