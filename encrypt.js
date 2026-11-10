@@ -263,27 +263,8 @@ const DEFAULT_APP_HTML = `
       <span class="theme-toggle__label">Light</span>
     </button>`;
 
-/* ================================================================
-   LOADER index.html  GENERATOR
-   ================================================================ */
 function generateLoader() {
-  let appHtml = '';
-  // Try to read pristine template from dev.html or index.html
-  for (const f of ['dev.html', 'index.html.bak', 'index.html']) {
-    if (fs.existsSync(f)) {
-      const src = fs.readFileSync(f, 'utf8');
-      const m = src.match(/<div\s+id="app"[^>]*>([\s\S]*?)<\/div>\s*\n\s*(?:<!-- Leaflet|<script)/i);
-      if (m && m[1].trim().length > 100) {
-        appHtml = m[1];
-        break;
-      }
-    }
-  }
-
-  // Fallback to embedded default if extraction failed
-  if (!appHtml || appHtml.trim().length < 50) {
-    appHtml = DEFAULT_APP_HTML;
-  }
+  const appHtml = DEFAULT_APP_HTML;
 
   const loader = `<!DOCTYPE html>
 <html lang="en" data-theme="dark">

@@ -25,7 +25,7 @@ echo ""
 
 # Step 2: Stage encrypted output
 echo "📦  Step 2/3: Staging files…"
-git add vault.json index.html .gitignore dev.html 2>/dev/null || true
+git add vault.json index.html .gitignore 2>/dev/null || true
 
 # Stage only new or modified .enc files
 git add -u images/ 2>/dev/null || true
@@ -37,7 +37,7 @@ echo ""
 echo "🚀  Step 3/3: Committing & pushing…"
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M")
 git commit -m "deploy: encrypt & publish [$TIMESTAMP]" || echo "  (nothing new to commit)"
-git push
+git push origin main
 
 echo ""
 echo "══════════════════════════════════════════"
