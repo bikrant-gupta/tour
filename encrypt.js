@@ -122,14 +122,39 @@ function encryptTextFiles(key, salt) {
   console.log(`\n  📦  Written: ${CFG.vault}  (${(fs.statSync(CFG.vault).size / 1024).toFixed(1)} KB)`);
 }
 
+function verifyExistingPasskey(passkey) {
+  if (!fs.existsSync(CFG.vault)) return null;
+  try {
+    const existing = JSON.parse(fs.readFileSync(CFG.vault, 'utf8'));
+    if (!existing.salt || !existing.files || !existing.files[CFG.dataFile]) return null;
+    const salt = Buffer.from(existing.salt, 'hex');
+    const key  = deriveKey(passkey, salt);
+
+    // Verify key by attempting to decrypt data.json
+    const encBuf     = Buffer.from(existing.files[CFG.dataFile], 'hex');
+    const iv         = encBuf.subarray(0, CFG.ivSize);
+    const tag        = encBuf.subarray(encBuf.length - 16);
+    const cipherText = encBuf.subarray(CFG.ivSize, encBuf.length - 16);
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(tag);
+    decipher.update(cipherText);
+    decipher.final();
+
+    return { salt, key, existingVault: existing };
+  } catch (err) {
+    return null;
+  }
+}
+
 /* ================================================================
-   IMAGE ENCRYPTION  →  image.webp.enc
+   IMAGE ENCRYPTION  →  image.webp.enc (Incremental)
    ================================================================ */
-function encryptImages(key) {
+function encryptImages(key, isIncremental = false) {
   if (!fs.existsSync(CFG.imgDir)) return;
 
-  let count = 0;
-  let savedBytes = 0;
+  let encrypted = 0;
+  let skipped = 0;
 
   function walkDir(dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -139,19 +164,33 @@ function encryptImages(key) {
       if (entry.name.endsWith('.enc')) continue;
 
       const encPath = full + '.enc';
-      const plain   = fs.readFileSync(full);
-      const encBuf  = encryptBuf(key, plain);
-      fs.writeFileSync(encPath, encBuf);
 
-      savedBytes += plain.length - encBuf.length; // negligible overhead
-      count++;
+      // Incremental mode: if .enc exists and is newer than source image, skip!
+      if (isIncremental && fs.existsSync(encPath)) {
+        try {
+          const srcStat = fs.statSync(full);
+          const encStat = fs.statSync(encPath);
+          if (encStat.mtimeMs >= srcStat.mtimeMs && encStat.size > 28) {
+            skipped++;
+            continue;
+          }
+        } catch (_) {}
+      }
+
+      const plain  = fs.readFileSync(full);
+      const encBuf = encryptBuf(key, plain);
+      fs.writeFileSync(encPath, encBuf);
+      encrypted++;
       console.log(`  🖼  ${path.relative('.', full)}  →  ${path.basename(encPath)}`);
     }
   }
 
-  console.log('\n  Encrypting images…');
+  console.log('\n  Checking images…');
   walkDir(CFG.imgDir);
-  console.log(`\n  📸  ${count} image(s) encrypted`);
+  if (skipped > 0) {
+    console.log(`  ⚡  ${skipped} unchanged image(s) skipped (no re-encryption needed)`);
+  }
+  console.log(`  📸  ${encrypted} image(s) encrypted`);
 }
 
 const DEFAULT_APP_HTML = `
@@ -401,6 +440,8 @@ function generateLoader() {
   'use strict';
 
   /* ---- Constants ---- */
+  const APP_VERSION = '1.0.1';
+  console.log(\`%c📍 Tour Explorer Loader v\${APP_VERSION}\`, 'color: #f59e0b; font-weight: bold; font-size: 13px;');
   const SALT_LEN = 16, IV_LEN = 12, TAG_LEN = 16;
   const MAX_FAILS = 5, BLOCK_MS = 6 * 3600 * 1000;
   const BLOCK_KEY = '_te_blk', FAIL_KEY = '_te_f';
@@ -695,14 +736,27 @@ async function main() {
     process.exit(1);
   }
 
-  console.log('\n  Generating salt & deriving key…');
-  const salt = crypto.randomBytes(CFG.saltSize);
-  const key  = deriveKey(passkey, salt);
+  const verified = verifyExistingPasskey(passkey);
+  let salt;
+  let key;
+  let isIncremental = false;
+
+  if (verified) {
+    console.log('\n  🔒  Passkey verified against existing vault.');
+    console.log('  ⚡  Incremental mode active — skipping unchanged images.');
+    salt = verified.salt;
+    key  = verified.key;
+    isIncremental = true;
+  } else {
+    console.log('\n  🔑  New passkey or initial build: generating salt & deriving key…');
+    salt = crypto.randomBytes(CFG.saltSize);
+    key  = deriveKey(passkey, salt);
+  }
 
   console.log('\n  Encrypting text files…');
   encryptTextFiles(key, salt);
 
-  encryptImages(key);
+  encryptImages(key, isIncremental);
   generateLoader();
   updateGitignore();
 

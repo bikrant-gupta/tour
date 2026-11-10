@@ -25,10 +25,11 @@ echo ""
 
 # Step 2: Stage encrypted output
 echo "📦  Step 2/3: Staging files…"
-git add vault.json index.html .gitignore 2>/dev/null || true
+git add vault.json index.html .gitignore dev.html 2>/dev/null || true
 
-# Stage all .enc image files
-find images -name "*.enc" -print0 2>/dev/null | xargs -0 git add -f 2>/dev/null || true
+# Stage only new or modified .enc files
+git add -u images/ 2>/dev/null || true
+find images -name "*.enc" -print0 2>/dev/null | xargs -0 git add 2>/dev/null || true
 
 echo ""
 
