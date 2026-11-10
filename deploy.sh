@@ -25,7 +25,7 @@ echo ""
 
 # Step 2: Stage encrypted output
 echo "📦  Step 2/3: Staging files…"
-git add vault.json index.html .gitignore 2>/dev/null || true
+git add vault.json index.html .gitignore encrypt.js deploy.sh convert-to-webp.sh 2>/dev/null || true
 
 # Stage only new or modified .enc files
 git add -u images/ 2>/dev/null || true

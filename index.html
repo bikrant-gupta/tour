@@ -357,11 +357,28 @@
     }
 
     const saltBuf = hexToBuf(vault.salt);
+
+    // Auto-clear stale lockout if vault was re-encrypted
+    try {
+      const lastSalt = localStorage.getItem('_te_s');
+      if (lastSalt && lastSalt !== vault.salt) {
+        clearBlock();
+      }
+      localStorage.setItem('_te_s', vault.salt);
+    } catch (_) {}
+
     let key;
     try {
       key = await deriveKey(passkey, saltBuf);
     } catch {
       setState('Key derivation failed.', 'error');
+      setLoading(false);
+      return;
+    }
+
+    /* Verify vault has required files */
+    if (!vault.files || !vault.files['data.json']) {
+      setState('Vault error: data.json is missing. Please re-run encrypt.js.', 'error');
       setLoading(false);
       return;
     }

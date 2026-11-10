@@ -26,6 +26,7 @@ const CFG = {
   textFiles  : ['app.js', 'style.css', 'auth.js', 'tracker.js'],
   dataFile   : 'data.json',
   vault      : 'vault.json',
+  keyFile    : '.passkey',
   imgDir     : 'images',
   imgExts    : new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']),
 };
@@ -95,6 +96,32 @@ function promptPasskey() {
   });
 }
 
+async function getPasskey() {
+  // 1. Read from .passkey file if available
+  if (fs.existsSync(CFG.keyFile)) {
+    try {
+      const raw = fs.readFileSync(CFG.keyFile, 'utf8').trim();
+      if (raw.length >= 6) {
+        console.log(`  🔑  Passkey loaded from ${CFG.keyFile}`);
+        return raw;
+      }
+      console.warn(`  ⚠️  Passkey in ${CFG.keyFile} is too short (minimum 6 characters).`);
+    } catch (err) {
+      console.warn(`  ⚠️  Failed to read ${CFG.keyFile}: ${err.message}`);
+    }
+  }
+
+  // 2. Prompt interactively if .passkey is missing or invalid
+  const passkey = await promptPasskey();
+  if (passkey && passkey.length >= 6) {
+    try {
+      fs.writeFileSync(CFG.keyFile, passkey + '\n', { mode: 0o600 });
+      console.log(`  💾  Saved passkey to ${CFG.keyFile} (will be reused automatically)`);
+    } catch (_) {}
+  }
+  return passkey;
+}
+
 /* ================================================================
    TEXT FILE ENCRYPTION  →  vault.json
    ================================================================ */
@@ -110,8 +137,9 @@ function encryptTextFiles(key, salt) {
   const allText = [...CFG.textFiles, CFG.dataFile];
   for (const filename of allText) {
     if (!fs.existsSync(filename)) {
-      console.log(`  ⚠️  ${filename} not found, skipping`);
-      continue;
+      console.error(`\n❌  Fatal Error: Required file "${filename}" is missing on disk!`);
+      console.error(`    Cannot create encrypted vault without ${filename}. Aborting.\n`);
+      process.exit(1);
     }
     const plain = fs.readFileSync(filename);
     vault.files[filename] = encryptBuf(key, plain).toString('hex');
@@ -557,11 +585,28 @@ function generateLoader() {
     }
 
     const saltBuf = hexToBuf(vault.salt);
+
+    // Auto-clear stale lockout if vault was re-encrypted
+    try {
+      const lastSalt = localStorage.getItem('_te_s');
+      if (lastSalt && lastSalt !== vault.salt) {
+        clearBlock();
+      }
+      localStorage.setItem('_te_s', vault.salt);
+    } catch (_) {}
+
     let key;
     try {
       key = await deriveKey(passkey, saltBuf);
     } catch {
       setState('Key derivation failed.', 'error');
+      setLoading(false);
+      return;
+    }
+
+    /* Verify vault has required files */
+    if (!vault.files || !vault.files['data.json']) {
+      setState('Vault error: data.json is missing. Please re-run encrypt.js.', 'error');
       setLoading(false);
       return;
     }
@@ -676,6 +721,10 @@ function generateLoader() {
 function updateGitignore() {
   const additions = [
     '',
+    '# ── Secrets & Local Passkey (never commit!) ──',
+    '.passkey',
+    '.key',
+    '',
     '# ── Plaintext source files (encrypted versions are pushed) ──',
     'app.js',
     'style.css',
@@ -711,7 +760,7 @@ async function main() {
   console.log('║   Tour Explorer — Encryption Script       ║');
   console.log('╚══════════════════════════════════════════╝\n');
 
-  const passkey = await promptPasskey();
+  const passkey = await getPasskey();
   if (!passkey || passkey.length < 6) {
     console.error('\n❌  Passkey too short (minimum 6 characters)');
     process.exit(1);

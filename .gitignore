@@ -1,3 +1,7 @@
+# ── Secrets & Local Passkey (never commit!) ──
+.passkey
+.key
+
 # ── Plaintext source files (encrypted versions are pushed) ──
 app.js
 style.css
