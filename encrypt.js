@@ -154,24 +154,96 @@ function encryptImages(key) {
   console.log(`\n  📸  ${count} image(s) encrypted`);
 }
 
+const DEFAULT_APP_HTML = `
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+      <a class="navbar__brand" id="navbar-brand" href="#">
+        <div class="navbar__icon">📍</div>
+        <div>
+          <div class="navbar__title">Tour Explorer</div>
+          <div class="navbar__subtitle">Travel Journal</div>
+        </div>
+      </a>
+      <div class="navbar__search" id="navbar-search">
+        <div class="search-bar">
+          <span class="search-bar__icon">🔍</span>
+          <input class="search-bar__input" id="search-input" type="search"
+                 placeholder="Search locations, places, tags…" aria-label="Search" autocomplete="off">
+          <kbd class="search-bar__kbd">ESC</kbd>
+        </div>
+      </div>
+      <div class="navbar__right">
+        <div class="navbar__stats">
+          <span id="location-count" class="navbar__stats-count">0</span>
+          <span>destinations</span>
+        </div>
+        <button class="navbar__timeline-btn" id="timeline-toggle" title="Timeline view" aria-label="Toggle timeline view">
+          <span class="navbar__timeline-icon">⏱</span>
+          <span class="navbar__timeline-label">Timeline</span>
+        </button>
+        <div class="navbar__author">
+          <div class="navbar__author-avatar" id="author-initial">E</div>
+          <span class="navbar__author-name" id="author-name">Explorer</span>
+        </div>
+      </div>
+    </nav>
+
+    <div id="map"></div>
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="location-panel" id="location-panel" role="dialog" aria-label="Location details">
+      <button class="panel__close" id="panel-close" aria-label="Close panel">✕</button>
+      <div class="panel__header">
+        <div class="panel__location-icon">📍</div>
+        <h2 class="panel__location-name" id="panel-location-name">—</h2>
+        <div class="panel__coords" id="panel-coords">—</div>
+        <div class="panel__location-tags" id="panel-tags" style="display:none"></div>
+      </div>
+      <div class="panel__tabs" id="panel-tabs" role="tablist" aria-label="Tour events"></div>
+      <div class="panel__content" id="panel-content" role="tabpanel">
+        <div class="empty-state">
+          <div class="empty-state__icon">🗺️</div>
+          <div class="empty-state__text">Select a location to explore</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-label="Image viewer">
+      <button class="lightbox__close" id="lightbox-close" aria-label="Close lightbox">✕</button>
+      <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" aria-label="Previous image">‹</button>
+      <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" aria-label="Next image">›</button>
+      <div class="lightbox__image-wrapper" id="lightbox-image-wrapper"></div>
+      <div class="lightbox__caption" id="lightbox-caption"></div>
+      <div class="lightbox__tags" id="lightbox-tags" style="display:none"></div>
+      <div class="lightbox__counter" id="lightbox-counter"></div>
+    </div>
+
+    <div class="timeline-view" id="timeline-view" style="display:none"></div>
+
+    <button class="theme-toggle" id="theme-toggle" title="Switch to light mode" aria-label="Toggle theme">
+      <span class="theme-toggle__icon">☀️</span>
+      <span class="theme-toggle__label">Light</span>
+    </button>`;
+
 /* ================================================================
    LOADER index.html  GENERATOR
    ================================================================ */
 function generateLoader() {
-  // Read the current index.html to extract the #app HTML
-  // We keep the full app DOM but hide it behind the lock screen
   let appHtml = '';
-  if (fs.existsSync('index.html')) {
-    const src = fs.readFileSync('index.html', 'utf8');
-    // Extract everything inside <div id="app"> … </div>
-    const m = src.match(/<div\s+id="app"[^>]*>([\s\S]*?)<\/div>\s*\n\s*<!-- Leaflet/);
-    if (m) {
-      appHtml = m[1];
-    } else {
-      // Fallback: use full body content between app tags
-      const m2 = src.match(/<div\s+id="app"[^>]*>([\s\S]*)<\/div>\s*\n\s*<\/body>/);
-      appHtml = m2 ? m2[1] : '';
+  // Try to read pristine template from dev.html or index.html
+  for (const f of ['dev.html', 'index.html.bak', 'index.html']) {
+    if (fs.existsSync(f)) {
+      const src = fs.readFileSync(f, 'utf8');
+      const m = src.match(/<div\s+id="app"[^>]*>([\s\S]*?)<\/div>\s*\n\s*(?:<!-- Leaflet|<script)/i);
+      if (m && m[1].trim().length > 100) {
+        appHtml = m[1];
+        break;
+      }
     }
+  }
+
+  // Fallback to embedded default if extraction failed
+  if (!appHtml || appHtml.trim().length < 50) {
+    appHtml = DEFAULT_APP_HTML;
   }
 
   const loader = `<!DOCTYPE html>
